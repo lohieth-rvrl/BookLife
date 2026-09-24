@@ -1,0 +1,134 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'ajax_datatable/css/style.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+{% endblock  %}
+    
+
+{% block content %}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center ">
+    {% if perms.books.create_book %}
+    <h2 class="fw-bold m-0">Borrowed Books</h2>
+    {% else %}
+    <h2 class="fw-bold m-0">My Borrows</h2>
+    {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm overflow-hidden">
+        <div class="table-responsive p-3">
+            <table class="table table-striped" id="Borrowbooktable">
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Borrowed At</th>
+                        {% comment %} <th>Expires At</th> {% endcomment %}
+                        <th>Actions</th>
+                        <th>Due date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock  %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="{% static 'ajax_datatable/js/utils.js' %}"></script>
+<script>
+    $(document).ready(function(){
+
+        var booktable = $("#Borrowbooktable").DataTable({
+            serverSide : true,
+            processing : true,
+            ajax : {
+                url: "{% url 'book:borrow_list' %}",
+                type: "GET"
+            },
+            columns: [
+                { data: "book__title" },
+                { data: "user__username" },
+                { data: "status" },
+                { data: "borrowed_at", orderable: false, searchable: false },
+                { data: "actions", orderable: false, searchable: false  },
+                { data: "due_date" , orderable: false, searchable: false },
+            ]
+        });
+
+        $('#Borrowbooktable').on('click','.delete-borrow-btn', function(e){
+            e.preventDefault()
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The borrow will be deleted!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url:  "{% url 'book:borrow_delete' 0 %}".replace("0", id),
+                        type: 'POST',
+                        data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                        success: function(response) {
+                            if (response) {
+                                Swal.fire('Deleted!', 'Borrow has been deleted.', 'success').then(()=>{
+                                    booktable.ajax.reload();
+                                })
+                            } else {
+                                Swal.fire('Error!', 'Could not delete borrow.', 'error')
+                            }
+                        },
+                        error: function(res) {
+                            Swal.fire("Error", res.responseJSON.error, "warning")
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#Borrowbooktable').on('click','.return-borrow-btn', function(e){
+            e.preventDefault()
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The Book will be returned!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, return it!',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url:  "{% url 'book:borrow_return' 0 %}".replace("0", id),
+                        type: 'POST',
+                        data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                        success: function(response) {
+                            if (response) {
+                                Swal.fire('returned!', 'Borrow has been returned.', 'success').then(()=>{
+                                    booktable.ajax.reload();
+                                })
+                            } else {
+                                Swal.fire('Error!', 'Could not return Borrow.', 'error')
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Something went wrong!', 'error')
+                        }
+                    });
+                }
+            });
+        });
+
+    })
+</script>
+    
+{% endblock  %}

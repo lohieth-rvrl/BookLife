@@ -1,0 +1,226 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'ajax_datatable/css/style.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+{% endblock  %}
+    
+
+{% block content %}
+
+<div class="col-md-12">
+        
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <h2 class="fw-bold m-0">Books</h2>
+        <div>
+            {% if perms.books.add_book %}
+            <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#myModal">Add Book</button>
+            {% endif %}
+            <a href="{% url 'base:base_gridbooks' %}" class="btn btn-primary">Grid View</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm overflow-hidden">
+        <div class="table-responsive p-3">
+            <table class="table table-striped" id="booktable">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Isbn</th>
+                        <th>Total_copies</th>
+                        <th>Available_copies</th>
+                        <th>Category</th>
+                        <th>Created_At</th>
+                        <th>Updated_at</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="myModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4 class="modal-title">Create Book</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form method="post" id="createbookform" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{create_form.as_p}}
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="myEditModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4 class="modal-title">Edit Book</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form method="post" enctype="multipart/form-data" id="updatebookform">
+                {% csrf_token %}
+                {{ update_form.as_p }}
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+  </div>
+</div>
+    
+{% endblock  %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="{% static 'ajax_datatable/js/utils.js' %}"></script>
+<script>
+    $(document).ready(function(){
+        var booktable = $("#booktable").DataTable({
+            serverSide : true,
+            processing : true,
+            ajax : {
+                url: "{% url 'book:list' %}",
+                type: "GET"
+            },
+            columns: [
+                { data: "title" },
+                { data: "author" },
+                { data: "isbn" },
+                { data: "total_copies", orderable: false, searchable: false},
+                { data: "available_copies", orderable: false, searchable: false },
+                { data: "category" },
+                { data: "created_at" },
+                { data: "updated_at" },
+                { data: "action", orderable: false, searchable: false }
+            ]
+        });
+
+        $("#createbookform").on("submit", function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: "{% url 'book:create_book' %}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success", "book created Successfully!", "success");
+                        $("#myModal").modal("hide");
+                        $("#createbookform")[0].reset();
+                        $("#booktable").DataTable().ajax.reload();
+                    } else {
+                        console.log(response.error);
+                        Swal.fire("Error", 
+                        response.error, 
+                        "error");
+                    }
+                }
+            });
+        });
+
+        $('#booktable').on('click', '.delete-btn', function(e) {
+            e.preventDefault()
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The Book will be deleted!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url:  "{% url 'book:delete_book' 0 %}".replace("0", id),
+                        type: 'POST',
+                        data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire('Deleted!', 'Book has been deleted.', 'success').then(() => {
+                                    $('.modal-backdrop').remove();
+                                    $('body').removeClass('modal-open');
+                                    $('body').css('overflow', 'auto');
+                                booktable.ajax.reload();
+                                });
+                            } else {
+                                Swal.fire('Error!', 'Could not delete contact.', 'error').then(() => {
+                                    $('.modal-backdrop').remove();
+                                    $('body').removeClass('modal-open');
+                                    $('body').css('overflow', 'auto');
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Something went wrong!', 'error').then(() => {
+                                $('.modal-backdrop').remove();
+                                $('body').removeClass('modal-open');
+                                $('body').css('overflow', 'auto');
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#booktable').on('click', '.edit-btn', function () {
+            const id = $(this).data('id')
+
+            $.get(`/books/update/${id}/`, function (data) {
+                $('#updatebookform input[name="title"]').val(data.title)
+                $('#updatebookform input[name="author"]').val(data.author)
+                $('#updatebookform input[name="isbn"]').val(data.isbn)
+                $('#updatebookform input[name="category"]').val(data.category)
+                $('#updatebookform input[name="total_copies"]').val(data.total_copies)
+                $('#updatebookform input[name="available_copies"]').val(data.available_copies)
+                $('#updatebookform input[name="is_active"]').prop('checked', data.is_active)
+
+                $('#updatebookform').data('id', id)
+            })
+        })
+
+        $('#updatebookform').on('submit', function (e) {
+            e.preventDefault()
+
+            const id = $(this).data('id')
+            var formData = new FormData(this)
+
+            $.ajax({
+                url: `/books/update/${id}/`,
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function () {
+                    swal.fire("Success", "book updated Successfully!", "success");
+                    $('#myEditModal').modal('hide')
+                    booktable.ajax.reload()
+                },
+                error: function (xhr) {
+                    const errors = xhr.responseJSON.errors
+                    alert(Object.values(errors).join("\n"))
+                }
+            })
+        })
+        
+
+    })
+</script>
+    
+{% endblock  %}

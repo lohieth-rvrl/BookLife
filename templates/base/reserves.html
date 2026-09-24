@@ -1,0 +1,168 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'ajax_datatable/css/style.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+{% endblock  %}
+    
+
+{% block content %}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center ">
+    {% if perms.books.create_book %}
+    <h2 class="fw-bold m-0">Reserved Books</h2>
+    {% else %}
+    <h2 class="fw-bold m-0">My Reserves</h2>
+    {% endif %}
+</div>
+
+    <div class="card border-0 shadow-sm overflow-hidden">
+        <div class="table-responsive p-3">
+            <table class="table table-striped" id="Reservebooktable">
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Reserved At</th>
+                        {% comment %} <th>Expires At</th> {% endcomment %}
+                        <th>Actions</th>
+                        <th>Expires In</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock  %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="{% static 'ajax_datatable/js/utils.js' %}"></script>
+<script>
+    $(document).ready(function(){
+        var booktable = $("#Reservebooktable").DataTable({
+            serverSide : true,
+            processing : true,
+            ajax : {
+                url: "{% url 'book:hold_list' %}",
+                type: "GET"
+            },
+            columns: [
+                { data: "book__title", searchable: true},
+                { data: "user__username", searchable: true },
+                { data: "status", searchable: true },
+                { data: "reserved_at", searchable: true },
+                {% comment %} { data: "expires_at" } {% endcomment %}
+                { data: "actions", orderable: false, searchable: false  },
+                { data: "expires", orderable: false, searchable: false  },
+            ]
+        });
+
+        $('#Reservebooktable').on('click','.delete-hold-btn', function(e){
+            e.preventDefault()
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The held will be deleted!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url:  "{% url 'book:hold_delete' 0 %}".replace("0", id),
+                        type: 'POST',
+                        data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                        success: function(response) {
+                            if (response) {
+                                Swal.fire('Deleted!', 'held has been deleted.', 'success').then(()=>{
+                                    booktable.ajax.reload();
+                                })
+                            } else {
+                                Swal.fire('Error!', 'Could not delete Held.', 'error')
+                            }
+                        },
+                        error: function(res) {
+                            Swal.fire("Error", res.responseJSON.error, "warning")
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#Reservebooktable').on('click','.return-hold-btn', function(e){
+            e.preventDefault()
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The Book will be returned!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, return it!',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url:  "{% url 'book:hold_return' 0 %}".replace("0", id),
+                        type: 'POST',
+                        data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                        success: function(response) {
+                            if (response) {
+                                Swal.fire('returned!', 'held has been returned.', 'success').then(()=>{
+                                    booktable.ajax.reload();
+                                })
+                            } else {
+                                Swal.fire('Error!', 'Could not return Held.', 'error')
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Something went wrong!', 'error')
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#Reservebooktable').on('click','.borrow-hold-btn', function(e){
+            e.preventDefault()
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The Book will be borrowed!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, borrow it!',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url:  "{% url 'book:hold_to_borrow' 0 %}".replace("0", id),
+                        type: 'POST',
+                        data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                        success: function(response) {
+                            if (response) {
+                                Swal.fire('borrowed!', 'held has been borrowed.', 'success').then(()=>{
+                                    booktable.ajax.reload();
+                                })
+                            } else {
+                                Swal.fire('Error!', 'Could not borrow Held.', 'error')
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Something went wrong!', 'error')
+                        }
+                    });
+                }
+            });
+        });
+
+    })
+</script>
+    
+{% endblock  %}

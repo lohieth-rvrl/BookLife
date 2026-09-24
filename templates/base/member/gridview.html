@@ -1,0 +1,140 @@
+{% extends 'base/base.html' %}
+
+
+{% block content %}
+    <div class="col-12 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <h2 class="fw-bold m-0">Books</h2>
+            <div class="d-flex gap-2">
+                
+                <form action="" method="get">
+                    <div class="d-flex flex-row gap-2">
+                        <select name="cat" class="form-select form-select-sm w-auto">
+                            
+                            <option value="">all</option>
+                            {% for c in categorys  %}
+                            <option value="{{c}}">{{c}}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-dark btn-sm px-3 d-flex">
+                            <i class="bi bi-filter me-1"></i> Apply
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div>
+                <a href="{% url 'base:base_books' %}" class="btn btn-primary">List</a>
+            </div>
+        </div>
+    </div>
+
+    {% if has_filter %}
+        <h2>{{has_filter}} <span class="text-primary">{{category}}</span></h2>
+    {% endif %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+    {% if books %}
+    {% for book in books %}
+    <div class="col">
+        <div class="card h-50 border-0 shadow-sm book-card-hover">
+            <div class="position-relative overflow-hidden rounded-top" style="aspect-ratio: 2/3;">
+                {% if book.image %}
+                <img src="{{ book.image.url }}" class="card-img-top h-100 w-100 object-fit-cover" alt="{{ book.title }}">
+                {% else %}
+                <div class="h-100 w-100 bg-secondary-subtle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-book text-secondary fs-1"></i>
+                </div>
+                {% endif %}
+                
+                <div class="position-absolute top-0 end-0 m-2">
+                    {% if book.available_copies > 0 %}
+                    <span class="badge bg-success shadow-sm">Available</span>
+                    {% else %}
+                    <span class="badge bg-danger shadow-sm">Out of <br> Stock</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-body bg-dark p-3 rounded text-white">
+                <div class="d-flex">
+                    <div>
+                        <h6 class="fw-bold text-truncate mb-1" title="{{ book.title }}">{{ book.title }}</h6>
+                        <p class=" small mb-3">By {{ book.author }}</p>
+                    </div>
+                </div>
+                
+                
+                <div class="d-flex justify-content-evenly text-center gap-2 align-items-center">
+                    {% if book.available_copies > 0 %}
+                    {% comment %} <a href="{% url 'book:hold_book' book.id %}" class="btn btn-warning btn-sm rounded-pill w-100 hold-btn">Hold</a>
+                        <a href="{% url 'book:borrow_book' book.id %}" class="btn btn-sm bg-white text-dark rounded-pill w-100 borrow-btn">Borrow</a> {% endcomment %}
+                        <button class="btn btn-warning btn-sm hold-btn w-100" data-id="{{ book.pk }}">Hold</button>
+                        <div class="vr"></div>
+                    <button class='btn btn-primary btn-sm borrow-btn w-100' data-id="{{ book.pk }}">Borrow</button>
+                    <div class="vr"></div>
+                    {% endif %}
+                    <a href="{% url 'book:view_book' book.pk %}" class="btn bg-white btn-sm rounded-pill"><i class="bi bi-eye"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>no results</p>
+    {% endif %}
+</div>
+{% endblock  %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function() {
+        $('.hold-btn').click(function() {
+            var bookId = $(this).data('id');
+            $.ajax({
+                url: '{% url "book:hold_book" 0 %}'.replace('0', bookId),
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon:"success",
+                        title:"Held!",
+                        text:"Book reserved successfully"
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function (res) {
+                    Swal.fire("Error", res.responseJSON.message, "warning")
+                }
+            });
+        });
+        $('.borrow-btn').click(function() {
+            var bookId = $(this).data('id');
+            $.ajax({
+                url: '{% url "book:borrow_book" 0 %}'.replace('0', bookId),
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon:"success",
+                        title:"Borrowed!",
+                        text:"Book borrowed successfully"
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function (res) {
+                    Swal.fire("Error", res.responseJSON.message, "warning")
+                }
+            });
+        });
+    });
+</script>
+    
+{% endblock  %}
+    
+    

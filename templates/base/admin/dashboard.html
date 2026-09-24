@@ -1,0 +1,171 @@
+
+{% block content %}
+<div class="col-12 mb-4">
+    <div class=" p-3">
+        <div class="row align-items-center g-3 mb-4">
+            <div class="col-md-4">
+                <h4 class="fw-bold m-0">Library Analytics</h4>
+            </div>
+            
+            <div class="col-md-8">
+                <form method="GET" class="d-flex flex-wrap justify-content-md-end gap-2">
+                    <div class="input-group input-group-sm w-auto">
+                        <input type="date" name="start" class="form-control" placeholder="Start Date">
+                    </div>
+                    
+                    <div class="input-group input-group-sm w-auto">
+                        <input type="date" name="end" class="form-control" placeholder="End Date">
+                    </div>
+                    <button type="submit" class="btn btn-dark btn-sm px-3">
+                        <i class="bi bi-filter me-1"></i> Apply
+                    </button>
+                    
+                    <a href="?" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </a>
+                </form>
+            </div>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-lg p-3">
+                    <small class="text-primary fw-bold text-uppercase " style="font-size: 0.7rem;">Total Books</small>
+                    <hr>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="date">
+                            <h3 class="fw-bold m-0">{{total_books}}</h3>
+                        </div>
+                        <div class="count">
+                            <span class="text-success small"><small class="fw-bold m-0">total</small> </span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-lg p-3">
+                    <small class="text-primary fw-bold text-uppercase " style="font-size: 0.7rem;">Total Borrowed</small>
+                    <hr>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="date">
+                            <h3 class="fw-bold m-0">{{total_borrowed}}</h3>
+                        </div>
+                        <div class="count">
+                            <span class="text-success small"><small class="fw-bold m-0">total</small> </span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-lg p-3">
+                    <small class="text-primary fw-bold text-uppercase mb-3" style="font-size: 0.7rem;">Daily Reservations</small>
+                    {% for row in reservations_per_day|slice:":2" %}
+
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="date">
+                            <h3 class="fw-bold m-0">{{row.count}}</h3>
+                        </div>
+                        <div class="count">
+                            <span class="text-success small"><small class="fw-bold m-0">{{row.day}}</small> </span>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endfor %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="fw-bold text-muted text-uppercase">Total : {{total_reservations}}</small>
+                        <a class="text-decoration-none text-primary disabled">View all</a>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-lg p-3">
+                    <small class="text-primary fw-bold text-uppercase mb-3" style="font-size: 0.7rem;">Daily Borrows</small>
+                    {% for row in borrows_per_day|slice:":2" %}
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="date">
+                            <h3 class="fw-bold m-0">{{row.count}}</h3>
+                        </div>
+                        <div class="count">
+                            <span class="text-success small"><small class="fw-bold m-0">{{row.day}}</small> </span>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endfor %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="fw-bold text-muted text-uppercase">Total : {{total_borrows}}</small>
+                        <a class="text-decoration-none text-primary disabled">View all</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 vh-50">
+                <div class="card border-0 shadow-lg p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small class="text-success fw-bold text-uppercase" style="font-size: 0.7rem;">Book Utilization</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover">
+                            <thead class="table-light text-center">
+                                <tr class="small text-muted">
+                                    <th>BOOK TITLE</th>
+                                    <th class="">TOTAL</th>
+                                    <th>BORROWED</th>
+                                    <th>AVAILABLE</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                {% for book in book_utilization %}
+                                <tr>
+                                    <td>{{ book.title }}</td>
+                                    <td>{{ book.total_copies }}</td>
+                                    <td>{{ book.borrowed }}</td>
+                                    <td>{{ book.available_copies }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-lg p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small class="fw-bold text-uppercase text-danger" style="font-size: 0.7rem;">Overdue Borrow</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover">
+                            <thead class="table-light text-center">
+                                <tr class="small text-muted">
+                                    <th class="ps-4">User</th>
+                                    <th>BOOK</th>
+                                    <th>DUE DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                {% for borrow in overdue_borrows %}
+                                <tr>
+                                    <td>{{ borrow.user.username }}</td>
+                                    <td>{{ borrow.book.title }}</td>
+                                    <td>{{ borrow.due_date }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No overdue books</td>
+                                </tr>
+                                {% endfor %}
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+
+{% endblock %}

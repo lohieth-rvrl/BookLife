@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mate Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'base/style.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    
+    {% block extra_css %}
+        
+    {% endblock  %}
+        
+</head>
+<body>
+
+    <div class="mobile-nav d-lg-none bg-dark text-white p-3 d-flex justify-content-between">
+        <span class="fw-bold">BookLife</span>
+        
+        <button class="btn btn-dark border-0 p-1" onclick="toggleSidebar()">
+            <i class="bi bi-list fs-6"></i>
+        </button>
+    </div>
+
+    <div class="d-flex">
+        <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 p-3 text-white bg-dark">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none overflow-hidden">
+                    <i class="bi bi-asterisk fs-4 me-3 text-white"></i>
+                    <span class="fs-4 fw-bold sidebar-text">BookLife</span>
+                </a>
+                <button class="btn btn-link text-white p-0 d-none d-lg-block" onclick="toggleSidebar()">
+                    <i class="bi bi-arrow-left-right"></i>
+                </button>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none px-2">
+                    <i class="rounded-circle me-2 bg-white text-dark px-2 py-1">{{ user.username|first|upper }}</i>
+                    <strong class="sidebar-text">{{ user.username  }}</strong>
+                </a>
+                    <a href="{% url 'accounts:logout' %}" class="nav-link "><span class="sidebar-text"><i class="bi bi-power bg-danger text-white rounded-pill px-2 py-1"></i> </span></a>
+
+            </div>
+
+            <hr>
+            
+            <ul class="nav nav-pills flex-column mb-auto test-start">
+                
+                {% if user.groups.all.0.name == 'MEMBER' %}
+
+                <li class="nav-item">
+                    <a href="{% url 'base:base_home' %}" class="nav-link text-white {% if request.path == '/' %}active{% endif %}">
+                        <i class="bi bi-house-door me-3"></i> <span class="sidebar-text">Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'base:base_gridbooks' %}" class="nav-link text-white {% if request.path == '/books/gridview/' %}active{% endif %}">
+                        <i class="bi bi-search me-3"></i> <span class="sidebar-text">Books</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'base:base_holds' %}" class="nav-link text-white {% if request.path == '/holds/' %}active{% endif %}">
+                        <i class="bi bi-book me-3"></i> <span class="sidebar-text">My Reserves</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'base:base_borrows' %}" class="nav-link text-white {% if request.path == '/borrows/' %}active{% endif %}"><i class="bi bi-journal-text me-3"></i> <span class="sidebar-text">My Borrows</span></a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white {% if request.path == '' %}active{% endif %}">
+                        <i class="bi bi-bookmark-heart me-3"></i> <span class="sidebar-text">Wishlist</span>
+                    </a>
+                </li>
+                <!-- <li class="mt-4">
+                    <a href="{% url 'accounts:logout' %}" class="nav-link bg-danger bg-opacity-75 text-white">
+                        <i class="bi bi-box-arrow-right me-3"></i> <span class="sidebar-text">Logout</span>
+                    </a>
+                </li> -->
+
+
+                
+                {% else %}
+                
+                <li class="nav-item">
+                    <a href="{% url 'base:base_home' %}" class="nav-link text-white {% if request.path == '/' %}active{% endif %}"><i class="bi bi-grid-1x2 me-3"></i> <span class="sidebar-text">Dashboard</span></a>
+                </li>
+                <li>
+                    <a href="{% url 'base:base_books' %}" class="nav-link text-white {% if request.path == '/books/' %}active{% endif %}"><i class="bi bi-search me-3"></i> <span class="sidebar-text">Books</span></a>
+                </li>
+                <li>
+                    <a href="{% url 'base:base_holds' %}" class="nav-link text-white {% if request.path == '/holds/' %}active{% endif %}"><i class="bi bi-journal-text me-3"></i> <span class="sidebar-text">Reserved List</span></a>
+                </li>
+                <li>
+                    <a href="{% url 'base:base_borrows' %}" class="nav-link text-white {% if request.path == '/borrows/' %}active{% endif %}"><i class="bi bi-book me-3"></i> <span class="sidebar-text">Borrowed List</span></a>
+                </li>
+                <li>
+                    <a href="{% url 'base:add_lib' %}" class="nav-link text-white {% if request.path == '/add/libraian/' %}active{% endif %}"><i class="bi bi-person-plus me-3 "></i> <span class="sidebar-text">ADD Libraian</span></a>
+                </li>
+                <li>
+                    <a href="{% url 'base:add_mem' %}" class="nav-link text-white {% if request.path == '/add/member/' %}active{% endif %}"><i class="bi bi-person-plus me-3 "></i> <span class="sidebar-text">ADD Member</span></a>
+                </li>
+                <!-- <li>
+                    <a href="{% url 'accounts:logout' %}" class="nav-link bg-danger text-white"><i class="bi bi-exclamation-octagon me-3"></i> <span class="sidebar-text">Logout</span></a>
+                </li> -->
+                {% endif %}
+                
+            </ul>
+            
+            <!-- <div class="dropdown mt-auto">
+                <hr>
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none">
+                    <img src="https://i.pravatar.cc/32" alt="" class="rounded-circle me-2">
+                    <strong class="sidebar-text">{{ user.username  }}</strong>
+                </a>
+            </div> -->
+        </nav>
+
+        <main class="content-area w-100 border border-5 border-dark">
+            <div class="container-fluid p-lg-4 p-3">
+                <div class="row g-4">
+                    {% block content %}
+                    {% if user.groups.all.0.name == 'MEMBER' %}
+                        <div class="col-md-12">
+                            {% include 'base/member/dashboard.html' %}
+                        </div>
+                        
+                    {% else %}
+                        <div class="col-md-10">
+                            {% include 'base/admin/dashboard.html' %}
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <div class="card border-0 shadow-lg p-3">
+                                <h4 class="text-muted fw-bold text-uppercase text-center">Activites</h4>
+                                <hr>
+                                {% for activity in activities %}
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="date text-start">
+                                        <h6 class="fw-bold m-0 text-success">{{ activity.user.username }}</h6>
+                                        <span class="text-warning "></span><small class="fw-bold m-0 text-warning" style="font-size: 0.6rem;">{{ activity.done_at|date:"M d, Y H:i" }}</small></span>
+                                    </div>
+                                    <div class="count text-end">
+                                        <span class="text-primary small"><small class="fw-bold m-0">{{ activity.message }}</small> </span>
+                                    </div>
+                                </div>
+                                <hr>
+                                {% empty %}
+                                    <li>No recent activities.</li>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% endblock  %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
+    {% block extra_js %}
+    
+    {% endblock  %}
+</body>
+</html>

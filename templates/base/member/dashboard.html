@@ -1,0 +1,22 @@
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="user-hero-card p-5 rounded-5 text-white shadow-lg overflow-hidden position-relative bg-dark">
+            <div class="row align-items-center position-relative" style="z-index: 2;">
+                <div class="col-lg-7">
+                    <span class="badge bg-warning text-dark px-3 mb-3">NEW ARRIVAL</span>
+                    <h1 class="display-5 fw-bold mb-3">Explore the Digital Archives</h1>
+                    <p class="lead opacity-75 mb-4">Access over 5,000+ digital books and research papers instantly from your dashboard.</p>
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'base:base_books' %}" class="btn btn-light btn-lg px-4 fw-bold">Browse Catalog</a>
+                        <button class="btn btn-outline-light btn-lg px-4">My Wishlist</button>
+                    </div>
+                </div>
+            </div>
+            <i class="bi bi-bookmarks-fill position-absolute end-0 bottom-0 m-n4 opacity-25" style="font-size: 15rem; transform: rotate(-15deg);"></i>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

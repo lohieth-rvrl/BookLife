@@ -1,0 +1,146 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold">Book Details</h4>
+        <a href="{% url 'base:base_books' %}" class="btn btn-secondary btn-sm">
+            Back
+        </a>
+    </div>
+    <hr>
+
+    <div class="card shadow-sm w-50 d-flex justify-content-center align-items-center mx-auto">
+        <div class="card-body p-0 w-100">
+
+            <table class="table table-bordered table-striped mb-0">
+                <tbody>
+                    <tr>
+                        <th style="width: 30%">Title</th>
+                        <td>{{ book.title }}</td>
+                    </tr>
+                    <tr>
+                        <th>Author</th>
+                        <td>{{ book.author }}</td>
+                    </tr>
+                    <tr>
+                        <th>ISBN</th>
+                        <td>{{ book.isbn }}</td>
+                    </tr>
+                    <tr>
+                        <th>Category</th>
+                        <td>{{ book.category }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Copies</th>
+                        <td>{{ book.total_copies }}</td>
+                    </tr>
+                    <tr>
+                        <th>Available Copies</th>
+                        <td>
+                            {% if book.available_copies > 0 %}
+                                <span class="badge bg-success">
+                                    {{ book.available_copies }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    Out of stock
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            {% if book.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Created At</th>
+                        <td>{{ book.created_at|date:"d M Y, h:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Last Updated</th>
+                        <td>{{ book.updated_at|date:"d M Y, h:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Actions</th>
+                        <td>
+                            {% if book.is_held_by_user|default:false %}
+                                <span class="badge bg-info">You have held this book</span>
+                            {% else %}
+                                <span class="badge bg-info">You have not held this book</span>
+                            {% endif %}
+                            <button class="btn btn-warning btn-sm hold-btn" data-id="{{ book.pk }}">Hold</button>
+                            <button class='btn btn-primary btn-sm borrow-btn' data-id="{{ book.pk }}">Borrow</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function() {
+        $('.hold-btn').click(function() {
+            var bookId = $(this).data('id');
+            $.ajax({
+                url: '{% url "book:hold_book" 0 %}'.replace('0', bookId),
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon:"success",
+                        title:"Held!",
+                        text:"Book reserved successfully"
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function (res) {
+                    Swal.fire("Error", res.responseJSON.message, "warning")
+                }
+            });
+        });
+        $('.borrow-btn').click(function() {
+            var bookId = $(this).data('id');
+            $.ajax({
+                url: '{% url "book:borrow_book" 0 %}'.replace('0', bookId),
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon:"success",
+                        title:"Borrowed!",
+                        text:"Book borrowed successfully"
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function (res) {
+                    Swal.fire("Error", res.responseJSON.message, "warning")
+                }
+            });
+        });
+    });
+</script>
+    
+{% endblock  %}
+    
